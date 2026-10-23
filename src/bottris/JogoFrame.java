@@ -55,7 +55,14 @@ public class JogoFrame extends JFrame {
         return menu;
     }
 
+    public void pararTodosTimers() {
+        if (tetrisPanel != null) tetrisPanel.pararTimers();
+        if (programacaoPanel != null) programacaoPanel.pararTimers();
+        if (labirintoPanel != null) labirintoPanel.pararTimers();
+    }
+
     public void iniciarNovoJogo() {
+        pararTodosTimers();
         if (containerJogo != null) painelPrincipal.remove(containerJogo);
         
         containerJogo = new JPanel(new GridLayout(1, 3));
@@ -75,6 +82,7 @@ public class JogoFrame extends JFrame {
     }
     
     public void voltarParaMenu() {
+        pararTodosTimers();
         cardLayout.show(painelPrincipal, "MENU");
     }
 
