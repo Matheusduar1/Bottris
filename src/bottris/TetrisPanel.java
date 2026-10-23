@@ -78,15 +78,47 @@ public class TetrisPanel extends JPanel {
         add(painelGameOver);
     }
     
+    public void pararTimers() {
+        if (timerQueda != null && timerQueda.isRunning()) timerQueda.stop();
+        if (timerContagem != null && timerContagem.isRunning()) timerContagem.stop();
+    }
+
     private void configurarControles() {
         mapearTecla("ESQ", KeyEvent.VK_LEFT, -1, 0);
+        mapearTecla("ESQ_A", KeyEvent.VK_A, -1, 0);
         mapearTecla("DIR", KeyEvent.VK_RIGHT, 1, 0);
+        mapearTecla("DIR_D", KeyEvent.VK_D, 1, 0);
         mapearTecla("BAIXO", KeyEvent.VK_DOWN, 0, 1);
+        mapearTecla("BAIXO_S", KeyEvent.VK_S, 0, 1);
         
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "GIRAR");
-        getActionMap().put("GIRAR", new AbstractAction() {
+        InputMap im = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = getActionMap();
+        
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "GIRAR");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0), "GIRAR");
+        am.put("GIRAR", new AbstractAction() {
             public void actionPerformed(ActionEvent e) { if (!gameOver && timerQueda.isRunning()) girarPeca(); }
         });
+        
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), "HARD_DROP");
+        am.put("HARD_DROP", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) { if (!gameOver && timerQueda.isRunning()) hardDrop(); }
+        });
+    }
+
+    private void hardDrop() {
+        int distancia = 0;
+        while (podeMover(pecaAtual, pecaX, pecaY + 1)) {
+            pecaY++;
+            distancia++;
+        }
+        score += distancia * 2;
+        fixarPeca();
+        verificarLinhas();
+        if (timerQueda.isRunning() && !gameOver) {
+            gerarNovaPeca();
+        }
+        repaint();
     }
     
     private void mapearTecla(String nome, int keyCode, int dx, int dy) {
@@ -181,6 +213,7 @@ public class TetrisPanel extends JPanel {
             if (cheia) {
                 linhas++;
                 for (int ty = y; ty > 0; ty--) System.arraycopy(grade[ty - 1], 0, grade[ty], 0, COLUNAS);
+                java.util.Arrays.fill(grade[0], 0);
                 y++; 
             }
         }
@@ -227,6 +260,21 @@ public class TetrisPanel extends JPanel {
         }
         
         if (pecaAtual != null) {
+            int ghostY = pecaY;
+            while (podeMover(pecaAtual, pecaX, ghostY + 1)) ghostY++;
+            if (ghostY > pecaY) {
+                Color ghostColor = new Color(cores[corAtual].getRed(), cores[corAtual].getGreen(), cores[corAtual].getBlue(), 60);
+                for (int y = 0; y < pecaAtual.length; y++) {
+                    for (int x = 0; x < pecaAtual[y].length; x++) {
+                        if (pecaAtual[y][x] != 0) {
+                            g.setColor(ghostColor);
+                            g.fillRect(offX + (pecaX + x) * TAM_BLOCO, offY + (ghostY + y) * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO);
+                            g.setColor(cores[corAtual]);
+                            g.drawRect(offX + (pecaX + x) * TAM_BLOCO, offY + (ghostY + y) * TAM_BLOCO, TAM_BLOCO, TAM_BLOCO);
+                        }
+                    }
+                }
+            }
             for (int y = 0; y < pecaAtual.length; y++) {
                 for (int x = 0; x < pecaAtual[y].length; x++) {
                     if (pecaAtual[y][x] != 0) desenharBloco(g, offX + (pecaX + x) * TAM_BLOCO, offY + (pecaY + y) * TAM_BLOCO, cores[corAtual], TAM_BLOCO);

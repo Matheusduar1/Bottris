@@ -55,13 +55,33 @@ public class ProgramacaoPanel extends JPanel {
         
         add(scroll, BorderLayout.CENTER);
         
-        // BOTÃO EXECUTAR
+        // BOTÕES DE AÇÃO (Limpar + Executar)
+        JPanel painelBotoesSul = new JPanel(new GridLayout(1, 2, 5, 0));
+        painelBotoesSul.setBackground(new Color(30, 30, 30));
+        
+        JButton btnLimpar = new JButton("LIMPAR TUDO");
+        btnLimpar.setBackground(new Color(150, 50, 50));
+        btnLimpar.setForeground(Color.WHITE);
+        btnLimpar.setFocusPainted(false);
+        btnLimpar.addActionListener(e -> {
+            if (btnExecutar.isEnabled() && !sequenciaAtual.isEmpty()) {
+                for (Comando c : sequenciaAtual) estoque.put(c, estoque.get(c) + 1);
+                sequenciaAtual.clear();
+                atualizarUI();
+                parent.getLabirintoPanel().limparFantasma();
+            }
+        });
+        
         btnExecutar = new JButton("EXECUTAR >>");
         btnExecutar.setEnabled(false);
         btnExecutar.setBackground(new Color(50, 150, 50));
         btnExecutar.setForeground(Color.WHITE);
+        btnExecutar.setFocusPainted(false);
         btnExecutar.addActionListener(e -> forcarExecucao());
-        add(btnExecutar, BorderLayout.SOUTH);
+        
+        painelBotoesSul.add(btnLimpar);
+        painelBotoesSul.add(btnExecutar);
+        add(painelBotoesSul, BorderLayout.SOUTH);
         
         // TIMER LOGIC
         timerProgramacao = new Timer(1000, e -> {
@@ -75,6 +95,10 @@ public class ProgramacaoPanel extends JPanel {
         atualizarUI();
     }
     
+    public void pararTimers() {
+        if (timerProgramacao != null && timerProgramacao.isRunning()) timerProgramacao.stop();
+    }
+
     private void forcarExecucao() {
         if(timerProgramacao.isRunning()) timerProgramacao.stop();
         lblTimer.setText("Executando...");
